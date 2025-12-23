@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المكان المظلم | Dark Place</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* المتغيرات والألوان */
+        :root {
+            --bg-color: #0f0f0f;
+            --card-bg: #1a1a1a;
+            --primary-gradient: linear-gradient(45deg, #7b2cbf, #b5179e);
+            --private-gradient: linear-gradient(45deg, #bf2c2c, #9e1717);
+            --text-main: #ffffff;
+            --text-sec: #b3b3b3;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Tajawal', 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 15, 15, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .menu-icon { font-size: 26px; cursor: pointer; transition: 0.3s; }
+        .menu-icon:hover { color: #b5179e; }
+
+        .logo { flex-grow: 1; text-align: center; }
+        .logo img {
+            height: 55px; width: 55px;
+            border-radius: 50%; border: 2px solid #b5179e;
+            box-shadow: 0 0 15px rgba(181, 23, 158, 0.5);
+            object-fit: cover;
+        }
+
+        .sell-btn {
+            background: var(--primary-gradient);
+            color: white; border: none; padding: 10px 20px;
+            border-radius: 25px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(123, 44, 191, 0.4);
+            transition: transform 0.2s;
+        }
+        .sell-btn:hover { transform: scale(1.05); }
+
+        .sidebar {
+            position: fixed; right: -300px; top: 0; width: 280px; height: 100%;
+            background: #121212; padding-top: 80px; z-index: 999;
+            transition: 0.4s ease; box-shadow: -5px 0 15px rgba(0,0,0,0.7);
+            border-left: 1px solid var(--glass-border);
+        }
+        
+        .sidebar a {
+            padding: 15px 30px; text-decoration: none; font-size: 18px;
+            color: var(--text-sec); display: flex; align-items: center;
+            justify-content: space-between; transition: 0.3s;
+            border-bottom: 1px solid var(--glass-border); cursor: pointer;
+        }
+        .sidebar a:hover { color: #fff; background: var(--glass); padding-right: 40px; }
+
+        .products-title {
+            text-align: center; margin-top: 30px; font-size: 24px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        
+        .products-title.private-mode { background: var(--private-gradient); -webkit-background-clip: text; }
+
+        .products-container {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px; padding: 30px 20px;
+        }
+
+        .product-card {
+            background: var(--card-bg); border: 1px solid var(--glass-border);
+            border-radius: 15px; padding: 15px; text-align: center;
+            transition: all 0.3s ease; position: relative; overflow: hidden;
+        }
+
+        .private-item { display: none; border-color: #9e1717; }
+        .normal-item { display: block; }
+
+        .product-card:hover { transform: translateY(-10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-color: #7b2cbf; }
+        
+        .product-img-box {
+            width: 100%; height: 200px; border-radius: 10px;
+            margin-bottom: 15px; overflow: hidden; background: #2a2a2a;
+        }
+        
+        .product-img-box img { width: 100%; height: 100%; object-fit: cover; }
+
+        .product-price { font-size: 20px; font-weight: bold; color: #b5179e; margin: 10px 0; }
+        .private-item .product-price { color: #e91e63; }
+
+        .buy-action-btn {
+            background: transparent; color: white; border: 1px solid #7b2cbf;
+            padding: 8px 25px; border-radius: 20px; cursor: pointer;
+            transition: 0.3s; width: 100%;
+        }
+        .buy-action-btn:hover { background: var(--primary-gradient); border-color: transparent; }
+
+        footer { background: #000; padding: 30px 20px; text-align: center; border-top: 1px solid var(--glass-border); margin-top: 50px; }
+        .footer-link { display: inline-flex; align-items: center; gap: 10px; color: #b5179e; text-decoration: none; }
+
+        .modal {
+            display: none; position: fixed; z-index: 2000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: #1e1e1e; margin: 10% auto; padding: 30px;
+            width: 90%; max-width: 450px; border-radius: 20px;
+            text-align: center; border: 1px solid var(--glass-border); position: relative;
+        }
+
+        .close { position: absolute; left: 20px; top: 15px; font-size: 30px; cursor: pointer; color: #fff; }
+
+        .contact-list { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+        .contact-btn { display: flex; align-items: center; padding: 12px 20px; border-radius: 10px; text-decoration: none; color: white; font-weight: bold; }
+        .contact-btn i { margin-left: 15px; font-size: 22px; width: 30px; }
+
+        .c-whatsapp { background: linear-gradient(45deg, #25D366, #128C7E); }
+        .c-instagram { background: linear-gradient(45deg, #f09433, #bc1888); }
+        .c-telegram { background: linear-gradient(45deg, #0088cc, #005f8f); }
+        .c-email { background: linear-gradient(45deg, #EA4335, #B02318); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="menu-icon" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+        <div class="logo">
+            <img src="https://scontent.falg6-1.fna.fbcdn.net/v/t39.30808-6/605625360_122104988223167635_2437995995248768351_n.jpg?stp=dst-jpg_p526x296_tt6&_nc_cat=100&ccb=1-7&_nc_sid=127cfc&_nc_ohc=ENWD7lXfNmwQ7kNvwHD2GWT&_nc_oc=AdkYULurJViJ0X2jPz6X_Ik-bV8WVUUghp_Hd87kBfQ-UooOAu8nvlVNPZ3YA3dt85U&_nc_zt=23&_nc_ht=scontent.falg6-1.fna&_nc_gid=ur2WnyGa2XQ1hkyFwSfLJA&oh=00_AfmFfHQaR5tDpAchfAAcPk8Jz9gdbyigG-dmi7hqosKTTw&oe=694F4235" alt="المكان المظلم">
+        </div>
+        <div id="sellModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('sellModal')">×</span>
+        <h2><i class="fas fa-handshake"></i> طلب بيع منتج</h2>
+        <p style="color:#bbb; margin-bottom: 20px;">تواصل مع الإدارة لرفع منتجاتك</p>
+        
+        <div class="contact-list">
+            <a href="https://wa.me/966500000000" class="contact-btn c-whatsapp" target="_blank">
+                <i class="fab fa-whatsapp"></i> تواصل عبر واتساب الإدارة غير متوفر حاليا
+            </a>
+
+            <a href="https://instagram.com/_bela_den" class="contact-btn c-instagram" target="_blank">
+                <i class="fab fa-instagram"></i> تواصل عبر إنستغرام الإدارة
+            </a>
+
+            <a href="https://t.me/bela_den_0" class="contact-btn c-telegram" target="_blank">
+                <i class="fab fa-telegram-plane"></i> تواصل عبر تليجرام الإدارة
+            </a>
+        </div>
+    </div>
+</div>
+        <button class="sell-btn" onclick="openModal('sellModal')">
+            <i class="fas fa-store"></i> بيع
+        </button>
+    </header>
+
+    <div id="mySidebar" class="sidebar">
+        <h3 style="text-align: center; color: #b5179e;">القائمة</h3>
+        <a onclick="switchToNormal()"><span>الفئات العادية</span> <i class="fas fa-box-open"></i></a>
+        <a onclick="checkPrivateAccess()"><span>الفئات الخاصة</span> <i class="fas fa-user-lock"></i></a>
+    </div>
+
+    <h2 class="products-title" id="pageTitle">أحدث المنتجات (عام)</h2>
+
+    <main class="products-container" id="productGrid">
+        
+        <div class="product-card normal-item">
+            <div class="product-img-box"><img src="https://via.placeholder.com/300x200?text=Mystery+Box" alt="صندوق"></div>
+            <h3>تجريبي</h3>
+            <p class="product-price">120 ر.س</p>
+            <button class="buy-action-btn" onclick="openBuyModal('00', '_bela_den', 'bela_den_0')">شراء الآن</button>
+        </div>
+
+        
+
+        <div class="product-card private-item">
+            <div class="product-img-box"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQcbkz__VrH3eLOZqqVKoOiSpylYOxmRSXvNw&s" alt="VIP"></div>
+            <h3>الصاروخ</h3>
+            <p class="product-price">تجريبي</p>
+            <button class="buy-action-btn" onclick="openBuyModal('00', '_bela_den', 'bela_den_0')">شراء سري</button>
+        </div>
+
+
+        <div class="product-card private-item">
+            <div class="product-img-box"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQcbkz__VrH3eLOZqqVKoOiSpylYOxmRSXvNw&s" alt="VIP"></div>
+            <h3>الصاروخ</h3>
+            <p class="product-price">تجريبي</p>
+            <button class="buy-action-btn" onclick="openBuyModal('00', '_bela_den', 'bela_den_0')">شراء سري</button>
+        </div>
+        
+        
+    </main>
+
+    <div id="sellModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('sellModal')">×</span>
+            <h2>طلب بيع منتج</h2>
+            <div class="contact-list">
+                <a href="https://t.me/ADMIN_USER" class="contact-btn c-telegram" target="_blank"><i class="fab fa-telegram-plane"></i> الإدارة تليجرام</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="buyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('buyModal')">×</span>
+            <h2>تواصل مع البائع</h2>
+            <div class="contact-list" id="sellerContactLinks">
+                </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>جميع الحقوق محفوظة © 2026 المكان المظلم</p>
+    </footer>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById("mySidebar");
+            sidebar.style.right = (sidebar.style.right === "0px") ? "-300px" : "0px";
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = "block"; }
+        function closeModal(id) { document.getElementById(id).style.display = "none"; }
+
+        // وظيفة فتح نافذة الشراء ببيانات مخصصة
+        function openBuyModal(whatsapp, insta, telegram) {
+            const container = document.getElementById('sellerContactLinks');
+            container.innerHTML = `
+                <a href="https://wa.me/${whatsapp}" class="contact-btn c-whatsapp" target="_blank"><i class="fab fa-whatsapp"></i> واتساب</a>
+                <a href="https://instagram.com/${insta}" class="contact-btn c-instagram" target="_blank"><i class="fab fa-instagram"></i> إنستغرام</a>
+                <a href="https://t.me/${telegram}" class="contact-btn c-telegram" target="_blank"><i class="fab fa-telegram-plane"></i> تليجرام</a>
+            `;
+            openModal('buyModal');
+        }
+
+        function switchToNormal() {
+            toggleSidebar();
+            document.querySelectorAll('.normal-item').forEach(el => el.style.display = "block");
+            document.querySelectorAll('.private-item').forEach(el => el.style.display = "none");
+            const title = document.getElementById("pageTitle");
+            title.innerText = "أحدث المنتجات (عام)";
+            title.classList.remove("private-mode");
+        }
+
+        function checkPrivateAccess() {
+            toggleSidebar();
+            setTimeout(() => {
+                const code = prompt("🔒 أدخل الرمز السري:");
+                if (code === "Macro##1239*00FmSS!") {
+                    document.querySelectorAll('.normal-item').forEach(el => el.style.display = "none");
+                    document.querySelectorAll('.private-item').forEach(el => el.style.display = "block");
+                    const title = document.getElementById("pageTitle");
+                    title.innerText = "☠️ المنطقة المحظورة (خاص)";
+                    title.classList.add("private-mode");
+                } else {
+                    alert("❌ الرمز خطأ");
+                }
+            }, 300);
+        }
+
+        window.onclick = function(event) {
+            if (event.target.className === 'modal') { event.target.style.display = "none"; }
+        }
+    </script>
+</body>
+</html>
